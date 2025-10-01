@@ -1,16 +1,19 @@
-from .models import Profile
+from .models import Post, Profile
 from django.shortcuts import render, redirect
 from . import views
 from django.http import HttpResponse
 from django.contrib.auth.models import User, auth
 from django.contrib import messages #Allows us to send messages to the frontend
 from django.contrib.auth.decorators import login_required
-
 # Create your views here.
 
 @login_required(login_url='signin') #Redirects the user to the sign in url
 def index(request):
-    return render(request, 'index.html')
+    user_object = User.objects.get(username = request.user.username) #Object of cureently logged in user
+    user_profile = Profile.objects.get(user=user_object)
+    
+    posts=Post.objects.all()
+    return render(request, 'index.html', {'user_profile': user_profile, 'posts':posts})
 
 def signup(request):
     
@@ -73,7 +76,7 @@ def logout(request):
     auth.logout(request)
     return redirect('signin')
 
-@login_required
+@login_required(login_url='signin')
 def settings(request):
     user_profile = Profile.objects.get(user=request.user)
     
@@ -103,6 +106,17 @@ def settings(request):
         
     return render(request, 'settings.html', {'user_profile': user_profile})
 
-@login_required
+@login_required(login_url='signin')
 def upload(request):
-    return HttpResponse('<h1> Uplod View</h1>')
+    
+    if request.method == 'POST':
+        user = request.user.username
+        image = request.FILES.get('image_upload')
+        caption = request.POST['caption']
+        
+        new_post = Post.objects.create(user= user, image=image, caption=caption)
+        new_post.save()
+        
+    else:
+        return redirect('/')
+    return HttpResponse('<h1> Upload View</h1>')
