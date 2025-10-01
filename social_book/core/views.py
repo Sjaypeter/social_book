@@ -1,3 +1,4 @@
+from .models import Profile
 from django.shortcuts import render, redirect
 from . import views
 from django.http import HttpResponse
@@ -27,6 +28,13 @@ def signup(request):
             else:
                 user = User.objects.create_user(username=username, email=email, password=password)
                 user.save()
+                
+                user_model = User.objects.get(username=username)#Creates a profile for the new user
+                new_profile = Profile.objects.create(user=user_model, id_user=user_model.id)
+                new_profile.save()
+                return redirect('signin')
+            
+            
         else:
             messages.info(request, 'Password do not match')
             return redirect('signup') #Redirects the user to the signup
@@ -34,3 +42,20 @@ def signup(request):
         
     else:
         return render(request, 'signup.html')
+    
+def signin(request):
+    
+    if request.method == 'POST':
+        username = request.POST['username']
+        password = request.POST['password']
+        
+        user = auth.authenticate(username=username, password=password)
+        
+        if user is not None:
+            auth.login(request, user)
+            return redirect('/')
+        else:
+            messages.info(request, 'Credentials Invalid')
+            return redirect('signin')
+        
+    return render(request, 'sign.html')
