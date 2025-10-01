@@ -4,9 +4,11 @@ from . import views
 from django.http import HttpResponse
 from django.contrib.auth.models import User, auth
 from django.contrib import messages #Allows us to send messages to the frontend
+from django.contrib.auth.decorators import login_required
 
 # Create your views here.
 
+@login_required(login_url='signin') #Redirects the user to the sign in url
 def index(request):
     return render(request, 'index.html')
 
@@ -59,3 +61,13 @@ def signin(request):
             return redirect('signin')
         
     return render(request, 'sign.html')
+
+
+@login_required(login_url='signin') #Redirects the user to the sign in url
+def logout(request):
+    auth.logout(request)
+    return redirect('signin')
+
+@login_required
+def settings(request):
+    return render(request, 'settings.html')
